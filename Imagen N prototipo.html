@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroUsme - Prototipo de Monitoreo Agrícola</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .app-container {
+            max-width: 450px;
+            min-height: 800px;
+            margin: 0 auto;
+            border: 12px solid #333;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            background-color: #f0f4f0;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background-color: #2d5a27;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .nav-btn {
+            transition: all 0.3s;
+        }
+        .alert-card {
+            border-left: 8px solid;
+        }
+        .progress-bar {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #e2e8f0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #10b981;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 font-sans">
+
+    <div class="app-container shadow-2xl">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="text-2xl font-bold italic">AgroUsme</h1>
+            <p class="text-xs opacity-80">Software de Gestión Agrícola - Usme</p>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow p-4 overflow-y-auto">
+            
+            <!-- VISTA 1: INICIO -->
+            <section id="view-home">
+                <div class="text-center mt-6">
+                    <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-green-600">
+                        <span class="text-4xl">🌱</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800">¡Bienvenido, Agricultor!</h2>
+                    <p class="text-sm text-gray-600 mb-6">Gestione sus cultivos hoy</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="showView('view-register')" class="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center hover:bg-green-50 nav-btn">
+                        <span class="text-2xl mr-4">📝</span>
+                        <div class="text-left">
+                            <p class="font-bold">Registro de Cultivos</p>
+                            <p class="text-xs text-gray-500">Añada sus nuevas siembras</p>
+                        </div>
+                    </button>
+
+                    <button onclick="showView('view-alerts')" class="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center hover:bg-orange-50 nav-btn">
+                        <span class="text-2xl mr-4">⚠️</span>
+                        <div class="text-left">
+                            <p class="font-bold">Alertas Climáticas</p>
+                            <p class="text-xs text-gray-500">Heladas y plagas detectadas</p>
+                        </div>
+                    </button>
+
+                    <button onclick="showView('view-dashboard')" class="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center hover:bg-blue-50 nav-btn">
+                        <span class="text-2xl mr-4">📊</span>
+                        <div class="text-left">
+                            <p class="font-bold">Tablero de Control</p>
+                            <p class="text-xs text-gray-500">Estado de su producción</p>
+                        </div>
+                    </button>
+
+                    <button onclick="showView('view-market')" class="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center hover:bg-yellow-50 nav-btn">
+                        <span class="text-2xl mr-4">💰</span>
+                        <div class="text-left">
+                            <p class="font-bold">Mercado Local</p>
+                            <p class="text-xs text-gray-500">Venda sus productos directamente</p>
+                        </div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- VISTA 2: REGISTRO DE CULTIVOS (IMAGEN 1) -->
+            <section id="view-register" class="hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="showView('view-home')" class="text-green-700 font-bold mr-4">← Volver</button>
+                    <h2 class="text-xl font-bold">Nuevo Registro</h2>
+                </div>
+
+                <form id="cropForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tipo de Cultivo</label>
+                        <select class="mt-1 block w-full p-3 rounded-lg border-gray-300 shadow-sm focus:ring-green-500 border bg-white">
+                            <option>Seleccione...</option>
+                            <option>Papa Sabanera</option>
+                            <option>Fresa</option>
+                            <option>Arveja</option>
+                            <option>Hortalizas</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Área (Hectáreas)</label>
+                        <input type="number" step="0.1" class="mt-1 block w-full p-3 rounded-lg border-gray-300 shadow-sm border" placeholder="Ej: 1.5">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Fecha de Siembra</label>
+                        <input type="date" class="mt-1 block w-full p-3 rounded-lg border-gray-300 shadow-sm border">
+                    </div>
+
+                    <button type="button" onclick="alert('¡Cultivo Guardado!')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mt-6">
+                        GUARDAR CULTIVO
+                    </button>
+                </form>
+            </section>
+
+            <!-- VISTA 3: ALERTAS -->
+            <section id="view-alerts" class="hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="showView('view-home')" class="text-orange-700 font-bold mr-4">← Volver</button>
+                    <h2 class="text-xl font-bold text-orange-800">Alertas Activas</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="alert-card bg-red-50 p-4 rounded-lg border-red-500 shadow-sm">
+                        <span class="font-bold text-red-700 text-xs uppercase">Crítica</span>
+                        <h3 class="font-bold text-gray-800 mt-1">Alerta de Helada</h3>
+                        <p class="text-sm text-gray-600">Prevención: -2°C en Usme Centro. Cubra los cultivos antes de las 6 PM.</p>
+                    </div>
+                    <div class="alert-card bg-yellow-50 p-4 rounded-lg border-yellow-500 shadow-sm">
+                        <span class="font-bold text-yellow-700 text-xs uppercase">Advertencia</span>
+                        <h3 class="font-bold text-gray-800 mt-1">Riesgo de Gota</h3>
+                        <p class="text-sm text-gray-600">Humedad alta (90%). Aplique tratamiento preventivo en la papa.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA 4: TABLERO DE CONTROL (IMAGEN N) -->
+            <section id="view-dashboard" class="hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="showView('view-home')" class="text-blue-700 font-bold mr-4">← Volver</button>
+                    <h2 class="text-xl font-bold text-blue-800">Estado de Producción</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Card Cultivo 1 -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-gray-800">Papa Sabanera</h3>
+                                <p class="text-xs text-gray-500">Lote: Vereda El Destino</p>
+                            </div>
+                            <span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">CRECIENDO</span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>Progreso de cosecha</span>
+                                <span class="font-bold">65%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill w-[65%]"></div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-2 italic">Fecha estimada cosecha: 15 de Mayo</p>
+                    </div>
+
+                    <!-- Card Cultivo 2 -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-gray-800">Fresas</h3>
+                                <p class="text-xs text-gray-500">Lote: Invernadero 1</p>
+                            </div>
+                            <span class="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-full font-bold">LISTO</span>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span>Progreso de cosecha</span>
+                                <span class="font-bold">100%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill w-full"></div>
+                            </div>
+                        </div>
+                        <button onclick="showView('view-market')" class="w-full mt-3 text-xs bg-green-50 text-green-700 py-2 rounded-lg font-bold border border-green-200">PUBLICAR PARA VENTA</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA 5: MERCADO LOCAL -->
+            <section id="view-market" class="hidden">
+                <div class="flex items-center mb-6">
+                    <button onclick="showView('view-home')" class="text-yellow-700 font-bold mr-4">← Volver</button>
+                    <h2 class="text-xl font-bold text-yellow-800">Venta Directa</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white p-3 rounded-lg shadow-sm text-center">
+                        <span class="text-3xl">🍓</span>
+                        <h4 class="font-bold text-sm mt-2">Canastilla Fresa</h4>
+                        <p class="text-green-600 font-bold text-xs">$45.000</p>
+                        <button class="mt-2 bg-yellow-500 text-white text-[10px] px-3 py-1 rounded-full w-full">PUBLICADO</button>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg shadow-sm text-center opacity-60">
+                        <span class="text-3xl">🥔</span>
+                        <h4 class="font-bold text-sm mt-2">Bulto Papa</h4>
+                        <p class="text-gray-500 text-xs">Sin stock</p>
+                        <button class="mt-2 bg-gray-200 text-gray-500 text-[10px] px-3 py-1 rounded-full w-full">AGOTADO</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer / Dock -->
+        <footer class="bg-white border-t border-gray-200 p-4 flex justify-around items-center">
+            <button onclick="showView('view-home')" class="text-gray-400 hover:text-green-600 flex flex-col items-center">
+                <span class="text-xl">🏠</span>
+                <span class="text-[10px]">Inicio</span>
+            </button>
+            <div class="h-1 w-12 bg-gray-300 rounded-full"></div>
+        </footer>
+    </div>
+
+    <script>
+        function showView(viewId) {
+            const views = ['view-home', 'view-register', 'view-alerts', 'view-dashboard', 'view-market'];
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
