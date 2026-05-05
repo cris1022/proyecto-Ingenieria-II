@@ -3,252 +3,437 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroUsme - Prototipo de Monitoreo Agrícola</title>
+    <title>AgroUsme Monitor - Prototipo Final TRL4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .app-container {
-            max-width: 450px;
-            min-height: 800px;
-            margin: 0 auto;
-            border: 12px solid #333;
-            border-radius: 40px;
-            overflow: hidden;
+        :root {
+            --primary: #2d5a27;
+            --secondary: #166534;
+            --accent: #f59e0b;
+        }
+
+        body { background-color: #cbd5e1; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        .phone-frame {
+            max-width: 410px;
+            height: 840px;
+            margin: 20px auto;
+            background-color: #f8fafc;
+            border: 12px solid #1e293b;
+            border-radius: 50px;
             position: relative;
-            background-color: #f0f4f0;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
         }
-        .header {
-            background-color: #2d5a27;
-            color: white;
-            padding: 20px;
-            text-align: center;
+
+        .screen { flex-grow: 1; overflow-y: auto; padding-bottom: 90px; }
+        .view { display: none; height: 100%; animation: fadeIn 0.3s ease-in-out; }
+        .view.active { display: flex; flex-direction: column; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .header-app {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white; padding: 50px 20px 20px; text-align: center;
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
         }
-        .nav-btn {
-            transition: all 0.3s;
+
+        .bottom-nav {
+            position: absolute; bottom: 0; width: 100%; height: 75px;
+            background: white; border-top: 1px solid #e2e8f0;
+            display: none; justify-content: space-around; align-items: center;
+            z-index: 100; padding-bottom: 10px;
         }
-        .alert-card {
-            border-left: 8px solid;
-        }
-        .progress-bar {
-            height: 10px;
-            border-radius: 5px;
-            background-color: #e2e8f0;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background-color: #10b981;
-        }
-        .hidden { display: none; }
+
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 10px; font-weight: 800; cursor: pointer; }
+        .nav-item.active { color: var(--primary); }
+
+        .btn-action { background-color: var(--primary); color: white; padding: 14px; border-radius: 12px; font-weight: 700; width: 100%; transition: 0.2s; }
+        .btn-action:active { transform: scale(0.96); }
+
+        .card { background: white; border-radius: 18px; padding: 16px; border: 1px solid #f1f5f9; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        
+        canvas { border-radius: 15px; background: white; margin-bottom: 10px; }
+        
+        input, select { border: 2px solid #f1f5f9; padding: 12px; border-radius: 12px; width: 100%; font-size: 14px; }
+        input:focus { border-color: var(--primary); outline: none; }
     </style>
 </head>
-<body class="bg-gray-100 p-4 font-sans">
+<body>
 
-    <div class="app-container shadow-2xl">
-        <!-- Header -->
-        <header class="header">
-            <h1 class="text-2xl font-bold italic">AgroUsme</h1>
-            <p class="text-xs opacity-80">Software de Gestión Agrícola - Usme</p>
+    <div class="phone-frame">
+        
+        <!-- HEADER (Oculto en Login/Registro) -->
+        <header id="app-header" class="header-app hidden">
+            <h2 class="text-xl font-black tracking-tight">AgroUsme Monitor</h2>
+            <p id="location-text" class="text-[10px] font-bold uppercase opacity-80">Cargando ubicación...</p>
         </header>
 
-        <!-- Main Content Area -->
-        <main class="flex-grow p-4 overflow-y-auto">
+        <div class="screen">
             
-            <!-- VISTA 1: INICIO -->
-            <section id="view-home">
-                <div class="text-center mt-6">
-                    <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-green-600">
-                        <span class="text-4xl">🌱</span>
-                    </div>
-                    <h2 class="text-xl font-bold text-gray-800">¡Bienvenido, Agricultor!</h2>
-                    <p class="text-sm text-gray-600 mb-6">Gestione sus cultivos hoy</p>
+            <!-- VISTA 0: LOGIN -->
+            <div id="view-login" class="view active p-8 justify-center">
+                <div class="text-center mb-12">
+                    <div class="text-7xl mb-4">🥔</div>
+                    <h1 class="text-4xl font-black text-slate-800">AgroUsme</h1>
+                    <p class="text-slate-400 text-xs font-bold uppercase mt-2">Gestión Inteligente de Cultivos</p>
                 </div>
-
-                <div class="grid grid-cols-1 gap-4">
-                    <button onclick="showView('view-register')" class="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center hover:bg-green-50 nav-btn">
-                        <span class="text-2xl mr-4">📝</span>
-                        <div class="text-left">
-                            <p class="font-bold">Registro de Cultivos</p>
-                            <p class="text-xs text-gray-500">Añada sus nuevas siembras</p>
-                        </div>
-                    </button>
-
-                    <button onclick="showView('view-alerts')" class="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center hover:bg-orange-50 nav-btn">
-                        <span class="text-2xl mr-4">⚠️</span>
-                        <div class="text-left">
-                            <p class="font-bold">Alertas Climáticas</p>
-                            <p class="text-xs text-gray-500">Heladas y plagas detectadas</p>
-                        </div>
-                    </button>
-
-                    <button onclick="showView('view-dashboard')" class="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center hover:bg-blue-50 nav-btn">
-                        <span class="text-2xl mr-4">📊</span>
-                        <div class="text-left">
-                            <p class="font-bold">Tablero de Control</p>
-                            <p class="text-xs text-gray-500">Estado de su producción</p>
-                        </div>
-                    </button>
-
-                    <button onclick="showView('view-market')" class="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center hover:bg-yellow-50 nav-btn">
-                        <span class="text-2xl mr-4">💰</span>
-                        <div class="text-left">
-                            <p class="font-bold">Mercado Local</p>
-                            <p class="text-xs text-gray-500">Venda sus productos directamente</p>
-                        </div>
-                    </button>
+                <div class="space-y-4">
+                    <input type="text" placeholder="Correo electrónico" class="bg-slate-50">
+                    <input type="password" placeholder="Contraseña" class="bg-slate-50">
+                    <button onclick="handleAuth('view-home')" class="btn-action shadow-lg">INGRESAR</button>
+                    <button onclick="navigate('view-signup')" class="text-green-700 font-bold text-sm w-full text-center mt-4">¿No tienes cuenta? Regístrate</button>
                 </div>
-            </section>
+            </div>
 
-            <!-- VISTA 2: REGISTRO DE CULTIVOS (IMAGEN 1) -->
-            <section id="view-register" class="hidden">
-                <div class="flex items-center mb-6">
-                    <button onclick="showView('view-home')" class="text-green-700 font-bold mr-4">← Volver</button>
-                    <h2 class="text-xl font-bold">Nuevo Registro</h2>
+            <!-- VISTA 0.1: REGISTRO (NUEVA) -->
+            <div id="view-signup" class="view p-8 justify-center">
+                <h2 class="text-2xl font-black text-slate-800 mb-2">Únete a la red</h2>
+                <p class="text-sm text-slate-500 mb-8">Conecta tu finca con monitoreo satelital.</p>
+                <div class="space-y-4">
+                    <input type="text" placeholder="Nombre completo" class="bg-slate-50">
+                    <select class="bg-slate-50" id="reg-vereda">
+                        <option value="">Selecciona tu Vereda</option>
+                        <option>Vereda El Destino</option>
+                        <option>Vereda La Regadera</option>
+                        <option>Vereda Los Soches</option>
+                        <option>Usme Centro</option>
+                    </select>
+                    <input type="email" placeholder="Correo electrónico" class="bg-slate-50">
+                    <input type="password" placeholder="Crea una contraseña" class="bg-slate-50">
+                    <button onclick="handleAuth('view-home')" class="btn-action">CREAR CUENTA</button>
+                    <button onclick="navigate('view-login')" class="text-slate-400 font-bold text-sm w-full text-center mt-4">Ya tengo cuenta</button>
                 </div>
+            </div>
 
-                <form id="cropForm" class="space-y-4">
+            <!-- VISTA 1: HOME -->
+            <div id="view-home" class="view p-5">
+                <div class="flex justify-between items-center mb-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Tipo de Cultivo</label>
-                        <select class="mt-1 block w-full p-3 rounded-lg border-gray-300 shadow-sm focus:ring-green-500 border bg-white">
-                            <option>Seleccione...</option>
-                            <option>Papa Sabanera</option>
-                            <option>Fresa</option>
-                            <option>Arveja</option>
-                            <option>Hortalizas</option>
+                        <h3 class="text-xl font-black text-slate-800" id="welcome-user">Hola, Agricultor</h3>
+                        <p class="text-xs text-slate-500 font-medium" id="user-vereda-display">Vereda El Destino</p>
+                    </div>
+                    <div class="bg-white px-3 py-1 rounded-full border border-slate-100 shadow-sm">
+                        <span class="text-xs font-black text-blue-500">12°C</span>
+                    </div>
+                </div>
+
+                <div class="card mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black text-slate-400 uppercase">Estado de Humedad Suelo</span>
+                        <span class="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">ESTABLE</span>
+                    </div>
+                    <canvas id="weatherCanvas" height="120"></canvas>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div onclick="navigate('view-alerts')" class="card border-l-4 border-l-red-500 cursor-pointer">
+                        <div class="text-xl">🔔</div>
+                        <p class="font-black text-slate-700 text-sm mt-1">Alertas</p>
+                        <p id="alert-count" class="text-[10px] text-red-500 font-bold">2 Pendientes</p>
+                    </div>
+                    <div onclick="navigate('view-register')" class="card border-l-4 border-l-blue-500 cursor-pointer">
+                        <div class="text-xl">🌱</div>
+                        <p class="font-black text-slate-700 text-sm mt-1">Siembra</p>
+                        <p class="text-[10px] text-blue-500 font-bold">Nuevo Registro</p>
+                    </div>
+                </div>
+
+                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Mis Cultivos Activos</h4>
+                <div id="cropList" class="space-y-3"></div>
+            </div>
+
+            <!-- VISTA 2: REGISTRO DE CULTIVO + RECOMENDACIONES -->
+            <div id="view-register" class="view p-6">
+                <h2 class="text-2xl font-black text-slate-800 mb-6">Nuevo Cultivo</h2>
+                
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">¿Qué vas a sembrar?</label>
+                        <select id="inputCropName" onchange="showRecommendation()" class="font-bold">
+                            <option value="">Selecciona un producto</option>
+                            <option value="papa">Papa Sabanera</option>
+                            <option value="fresa">Fresa (Variedad Albion)</option>
+                            <option value="cebolla">Cebolla de Rama</option>
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Área (Hectáreas)</label>
-                        <input type="number" step="0.1" class="mt-1 block w-full p-3 rounded-lg border-gray-300 shadow-sm border" placeholder="Ej: 1.5">
+                    <!-- Ficha de Recomendación Dinámica -->
+                    <div id="recommendation-card" class="hidden bg-green-50 p-4 rounded-xl border border-green-100">
+                        <h5 class="text-xs font-black text-green-800 uppercase mb-2">💡 Guía de Expertos Usme</h5>
+                        <div id="rec-content" class="text-[11px] text-green-700 space-y-1"></div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Fecha de Siembra</label>
-                        <input type="date" class="mt-1 block w-full p-3 rounded-lg border-gray-300 shadow-sm border">
+                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Área de siembra (Hectáreas)</label>
+                        <input id="inputCropArea" type="number" placeholder="Ej: 0.5" class="font-bold">
                     </div>
+                    
+                    <button onclick="handleAddCrop()" class="btn-action mt-4">INICIAR MONITOREO</button>
+                    <button onclick="navigate('view-home')" class="text-slate-400 font-bold text-xs w-full py-2">CANCELAR</button>
+                </div>
+            </div>
 
-                    <button type="button" onclick="alert('¡Cultivo Guardado!')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mt-6">
-                        GUARDAR CULTIVO
-                    </button>
-                </form>
-            </section>
-
-            <!-- VISTA 3: ALERTAS -->
-            <section id="view-alerts" class="hidden">
-                <div class="flex items-center mb-6">
-                    <button onclick="showView('view-home')" class="text-orange-700 font-bold mr-4">← Volver</button>
-                    <h2 class="text-xl font-bold text-orange-800">Alertas Activas</h2>
+            <!-- VISTA 3: GESTIÓN DE ALERTAS (MEJORADA) -->
+            <div id="view-alerts" class="view p-6">
+                <h2 class="text-2xl font-black text-slate-800 mb-2">Alertas Activas</h2>
+                <p class="text-xs text-slate-400 mb-6">Gestiona las amenazas detectadas en tus parcelas.</p>
+                
+                <div id="alerts-container" class="space-y-4">
+                    <!-- Las alertas se generan aquí -->
                 </div>
 
-                <div class="space-y-4">
-                    <div class="alert-card bg-red-50 p-4 rounded-lg border-red-500 shadow-sm">
-                        <span class="font-bold text-red-700 text-xs uppercase">Crítica</span>
-                        <h3 class="font-bold text-gray-800 mt-1">Alerta de Helada</h3>
-                        <p class="text-sm text-gray-600">Prevención: -2°C en Usme Centro. Cubra los cultivos antes de las 6 PM.</p>
-                    </div>
-                    <div class="alert-card bg-yellow-50 p-4 rounded-lg border-yellow-500 shadow-sm">
-                        <span class="font-bold text-yellow-700 text-xs uppercase">Advertencia</span>
-                        <h3 class="font-bold text-gray-800 mt-1">Riesgo de Gota</h3>
-                        <p class="text-sm text-gray-600">Humedad alta (90%). Aplique tratamiento preventivo en la papa.</p>
-                    </div>
+                <div id="no-alerts" class="hidden text-center py-12">
+                    <div class="text-5xl mb-4">✅</div>
+                    <p class="font-black text-slate-700">¡Todo bajo control!</p>
+                    <p class="text-xs text-slate-400 mt-1">No hay riesgos detectados en este momento.</p>
                 </div>
-            </section>
+            </div>
 
-            <!-- VISTA 4: TABLERO DE CONTROL (IMAGEN N) -->
-            <section id="view-dashboard" class="hidden">
-                <div class="flex items-center mb-6">
-                    <button onclick="showView('view-home')" class="text-blue-700 font-bold mr-4">← Volver</button>
-                    <h2 class="text-xl font-bold text-blue-800">Estado de Producción</h2>
+            <!-- VISTA 4: PERFIL -->
+            <div id="view-profile" class="view p-6">
+                <div class="text-center mt-6 mb-8">
+                    <div class="w-28 h-28 bg-slate-200 rounded-full mx-auto mb-4 border-4 border-white shadow-lg overflow-hidden">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Avatar">
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800" id="profile-name">Felix Ruiz</h2>
+                    <p class="text-green-700 font-bold text-sm">Agricultor de Usme</p>
                 </div>
 
-                <div class="space-y-6">
-                    <!-- Card Cultivo 1 -->
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-gray-800">Papa Sabanera</h3>
-                                <p class="text-xs text-gray-500">Lote: Vereda El Destino</p>
-                            </div>
-                            <span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">CRECIENDO</span>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-xs mb-1">
-                                <span>Progreso de cosecha</span>
-                                <span class="font-bold">65%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill w-[65%]"></div>
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-2 italic">Fecha estimada cosecha: 15 de Mayo</p>
+                <div class="card space-y-4">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500 font-medium">Ubicación</span>
+                        <span class="font-black text-slate-700">Vereda El Destino</span>
                     </div>
-
-                    <!-- Card Cultivo 2 -->
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-gray-800">Fresas</h3>
-                                <p class="text-xs text-gray-500">Lote: Invernadero 1</p>
-                            </div>
-                            <span class="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-full font-bold">LISTO</span>
-                        </div>
-                        <div class="mt-4">
-                            <div class="flex justify-between text-xs mb-1">
-                                <span>Progreso de cosecha</span>
-                                <span class="font-bold">100%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill w-full"></div>
-                            </div>
-                        </div>
-                        <button onclick="showView('view-market')" class="w-full mt-3 text-xs bg-green-50 text-green-700 py-2 rounded-lg font-bold border border-green-200">PUBLICAR PARA VENTA</button>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500 font-medium">Notificaciones</span>
+                        <span class="text-green-600 font-black">SMS Activo</span>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100">
+                        <button onclick="location.reload()" class="text-red-500 font-black text-xs uppercase w-full">Cerrar Sesión</button>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- VISTA 5: MERCADO LOCAL -->
-            <section id="view-market" class="hidden">
-                <div class="flex items-center mb-6">
-                    <button onclick="showView('view-home')" class="text-yellow-700 font-bold mr-4">← Volver</button>
-                    <h2 class="text-xl font-bold text-yellow-800">Venta Directa</h2>
-                </div>
+        </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-                        <span class="text-3xl">🍓</span>
-                        <h4 class="font-bold text-sm mt-2">Canastilla Fresa</h4>
-                        <p class="text-green-600 font-bold text-xs">$45.000</p>
-                        <button class="mt-2 bg-yellow-500 text-white text-[10px] px-3 py-1 rounded-full w-full">PUBLICADO</button>
-                    </div>
-                    <div class="bg-white p-3 rounded-lg shadow-sm text-center opacity-60">
-                        <span class="text-3xl">🥔</span>
-                        <h4 class="font-bold text-sm mt-2">Bulto Papa</h4>
-                        <p class="text-gray-500 text-xs">Sin stock</p>
-                        <button class="mt-2 bg-gray-200 text-gray-500 text-[10px] px-3 py-1 rounded-full w-full">AGOTADO</button>
-                    </div>
-                </div>
-            </section>
+        <!-- NAV -->
+        <nav id="app-nav" class="bottom-nav">
+            <div onclick="navigate('view-home')" class="nav-item active" id="nav-home">
+                <span class="text-xl mb-1">🏠</span><span>INICIO</span>
+            </div>
+            <div onclick="navigate('view-alerts')" class="nav-item" id="nav-alerts">
+                <span class="text-xl mb-1">🔔</span><span>ALERTAS</span>
+            </div>
+            <div onclick="navigate('view-profile')" class="nav-item" id="nav-profile">
+                <span class="text-xl mb-1">👤</span><span>PERFIL</span>
+            </div>
+        </nav>
 
-        </main>
-
-        <!-- Footer / Dock -->
-        <footer class="bg-white border-t border-gray-200 p-4 flex justify-around items-center">
-            <button onclick="showView('view-home')" class="text-gray-400 hover:text-green-600 flex flex-col items-center">
-                <span class="text-xl">🏠</span>
-                <span class="text-[10px]">Inicio</span>
-            </button>
-            <div class="h-1 w-12 bg-gray-300 rounded-full"></div>
-        </footer>
     </div>
 
     <script>
-        function showView(viewId) {
-            const views = ['view-home', 'view-register', 'view-alerts', 'view-dashboard', 'view-market'];
-            views.forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById(viewId).classList.remove('hidden');
+        // DATOS TÉCNICOS DE CULTIVOS (Recomendaciones)
+        const CROP_GUIDE = {
+            papa: {
+                suelo: "Suelos francos con buen drenaje y pH entre 5.5 y 7.0.",
+                temporada: "Mejor siembra: Febrero - Marzo y Agosto - Septiembre.",
+                clima: "Prefiere temperaturas entre 10°C y 20°C.",
+                tip: "Rotar con cereales para evitar plagas del suelo."
+            },
+            fresa: {
+                suelo: "Suelos ligeros, ricos en materia orgánica y arenosos.",
+                temporada: "Siembra constante bajo invernadero en Usme.",
+                clima: "Evitar exceso de humedad en floración.",
+                tip: "Uso de acolchado plástico para proteger el fruto."
+            },
+            cebolla: {
+                suelo: "Suelos profundos, sueltos y bien abonados.",
+                temporada: "Todo el año, ideal en zonas con buena luz solar.",
+                clima: "Resistente al frío intenso de Usme Alta.",
+                tip: "Controlar el riego; el exceso pudre la base."
+            }
+        };
+
+        // ESTADO DE ALERTAS
+        let activeAlerts = [
+            { id: 1, title: "Riesgo de Helada", desc: "Se prevé descenso a 0°C esta madrugada.", type: "danger", date: "Hace 10 min" },
+            { id: 2, title: "Humedad Alta", desc: "Niveles de 95% propicios para hongo Gota.", type: "warning", date: "Hace 1h" }
+        ];
+
+        let crops = [
+            { name: "Papa Sabanera", area: "1.5", progress: 60 }
+        ];
+
+        // NAVEGACIÓN
+        function navigate(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const target = document.getElementById(viewId);
+            target.classList.add('active');
+
+            // Visibilidad de UI principal
+            const isAppView = !['view-login', 'view-signup'].includes(viewId);
+            document.getElementById('app-header').classList.toggle('hidden', !isAppView);
+            document.getElementById('app-nav').style.display = isAppView ? 'flex' : 'none';
+
+            // Actualizar Nav visualmente
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.id === 'nav-' + viewId.split('-')[1]) item.classList.add('active');
+            });
+
+            if (viewId === 'view-home') initCanvas();
+            if (viewId === 'view-alerts') renderAlerts();
+            
+            // Actualizar textos dinámicos
+            if (viewId === 'view-home') {
+                const vereda = document.getElementById('reg-vereda').value || "El Destino";
+                document.getElementById('location-text').innerText = "Usme • " + vereda;
+                document.getElementById('user-vereda-display').innerText = vereda;
+            }
         }
+
+        function handleAuth(target) {
+            // Simular carga
+            const btn = event.target;
+            btn.innerText = "PROCESANDO...";
+            setTimeout(() => {
+                navigate(target);
+            }, 800);
+        }
+
+        // MOSTRAR RECOMENDACIÓN
+        function showRecommendation() {
+            const cropKey = document.getElementById('inputCropName').value;
+            const card = document.getElementById('recommendation-card');
+            const content = document.getElementById('rec-content');
+
+            if (cropKey && CROP_GUIDE[cropKey]) {
+                const info = CROP_GUIDE[cropKey];
+                content.innerHTML = `
+                    <p><b>🌱 Suelo:</b> ${info.suelo}</p>
+                    <p><b>📅 Época:</b> ${info.temporada}</p>
+                    <p><b>❄️ Clima:</b> ${info.clima}</p>
+                    <p><b>⭐ Tip:</b> ${info.tip}</p>
+                `;
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        }
+
+        // REGISTRO DE CULTIVO
+        function handleAddCrop() {
+            const select = document.getElementById('inputCropName');
+            const name = select.options[select.selectedIndex].text;
+            const area = document.getElementById('inputCropArea').value;
+
+            if (!area || select.value === "") return alert("Completa los datos del cultivo");
+
+            crops.push({ name, area, progress: 5 });
+            renderCrops();
+            alert("¡Cultivo registrado! Monitoreo activado.");
+            navigate('view-home');
+            
+            // Reset form
+            document.getElementById('inputCropArea').value = "";
+            select.value = "";
+            document.getElementById('recommendation-card').classList.add('hidden');
+        }
+
+        function renderCrops() {
+            const container = document.getElementById('cropList');
+            container.innerHTML = '';
+            crops.forEach(c => {
+                container.innerHTML += `
+                    <div class="card bg-slate-50 border-none">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-black text-slate-700 text-sm">${c.name}</span>
+                            <span class="text-[9px] font-bold text-slate-400">${c.area} Ha</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-green-600 h-full" style="width: ${c.progress}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // GESTIÓN DE ALERTAS
+        function renderAlerts() {
+            const container = document.getElementById('alerts-container');
+            const emptyState = document.getElementById('no-alerts');
+            container.innerHTML = '';
+
+            if (activeAlerts.length === 0) {
+                emptyState.classList.remove('hidden');
+                document.getElementById('alert-count').innerText = "0 Pendientes";
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            document.getElementById('alert-count').innerText = activeAlerts.length + " Pendientes";
+
+            activeAlerts.forEach(alert => {
+                const borderClass = alert.type === 'danger' ? 'border-l-red-500 bg-red-50' : 'border-l-amber-500 bg-amber-50';
+                const titleClass = alert.type === 'danger' ? 'text-red-800' : 'text-amber-800';
+
+                container.innerHTML += `
+                    <div class="p-4 rounded-xl border-l-4 shadow-sm ${borderClass}">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-black text-sm ${titleClass}">${alert.title}</h4>
+                            <span class="text-[8px] font-bold opacity-50">${alert.date}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 mt-1">${alert.desc}</p>
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="resolveAlert(${alert.id})" class="bg-white px-3 py-1.5 rounded-lg text-[9px] font-black text-green-700 shadow-sm">RESOLVER</button>
+                            <button onclick="dismissAlert(${alert.id})" class="text-[9px] font-black text-slate-400">DESCARTAR</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function resolveAlert(id) {
+            activeAlerts = activeAlerts.filter(a => a.id !== id);
+            renderAlerts();
+            alert("Se ha marcado la alerta como gestionada.");
+        }
+
+        function dismissAlert(id) {
+            activeAlerts = activeAlerts.filter(a => a.id !== id);
+            renderAlerts();
+        }
+
+        // CANVAS
+        function initCanvas() {
+            const canvas = document.getElementById('weatherCanvas');
+            const ctx = canvas.getContext('2d');
+            let offset = 0;
+            function animate() {
+                if (document.getElementById('view-home').classList.contains('active')) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.beginPath(); ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 1;
+                    for(let i=0; i<canvas.width; i+=25) { ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); }
+                    ctx.stroke();
+                    ctx.beginPath(); ctx.strokeStyle = "#16a34a"; ctx.lineWidth = 3;
+                    for(let x=0; x<canvas.width; x++) {
+                        const y = 60 + Math.sin((x+offset)*0.04)*15;
+                        if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                    }
+                    ctx.stroke();
+                    offset++;
+                    requestAnimationFrame(animate);
+                }
+            }
+            animate();
+        }
+
+        window.onload = () => {
+            renderCrops();
+        };
     </script>
 </body>
 </html>
